@@ -1,35 +1,96 @@
-import { useState } from 'react'
-import reactLogo from './assets/react.svg'
-import viteLogo from '/vite.svg'
-import './App.css'
+import { useState, useEffect } from "react";
+import axios from "axios";
+import Navbar from "./Components/Navbar/Navbar";
 
-function App() {
-  const [count, setCount] = useState(0)
+const App = () => {
+  const [posts, setPosts] = useState([]);
+  const [newPost , setNewPost] = useState({
+    title: "",
+    content:""
+  });
+
+  // Get a Data 
+
+  useEffect(() => {
+    axios
+      .get("http://localhost:4000/posts")
+      .then((res) => setPosts(res.data))
+      .catch((err) => console.log("something went Wrong"));
+  }, []);
+
+
+
+// post a newdata
+
+const addpost = () => {
+  console.log("New post data:", newPost);
+
+  axios.post("http://localhost:4000/posts", newPost)
+    .then((res) => {
+      console.log("Post response:", res.data);
+      setPosts([...posts, res.data]);
+      setNewPost({ title: "", content: "" });
+      
+    })
+    .catch((err) => console.error("Something went wrong:", err));
+}
+
+
+
+// DeletePost 
+
+const deletePost = (id) => {
+  axios.delete(`http://localhost:4000/posts/${id}`)
+  .then(()=>{
+    setPosts(posts.filter((post)=>post.id !== id));
+  })
+  .catch((err)=> console.log("Something Went wrong"));
+
+}
+
+
+const handleSubmit = () =>{
+addpost()
+
+}
+
 
   return (
     <>
-      <div>
-        <a href="https://vitejs.dev" target="_blank">
-          <img src={viteLogo} className="logo" alt="Vite logo" />
-        </a>
-        <a href="https://react.dev" target="_blank">
-          <img src={reactLogo} className="logo react" alt="React logo" />
-        </a>
-      </div>
-      <h1>Vite + React</h1>
-      <div className="card">
-        <button onClick={() => setCount((count) => count + 1)}>
-          count is {count}
-        </button>
-        <p>
-          Edit <code>src/App.jsx</code> and save to test HMR
-        </p>
-      </div>
-      <p className="read-the-docs">
-        Click on the Vite and React logos to learn more
-      </p>
-    </>
-  )
-}
+      <Navbar />
+      <div className="container py-4">
+        <div className="mb-5">
+          <input
+            type="text"
+            className="form-control mb-2"
+            onChange={(e)=>setNewPost({...newPost , title:e.target.value})}
+            placeholder="Title"
+          />
+          <input
+            type="text"
+            className="form-control mb-2"
+            placeholder="Content"
+            onChange={(e)=>setNewPost({...newPost , content:e.target.value})}
+          />
 
-export default App
+          <button onClick={handleSubmit} className="btn btn-success mt-2 px-3">Add Post </button>
+        </div>
+
+        <ul className="list-group mb-4 gap-2 ">
+          {posts.map((post) => (
+            <li key={post.id} className="list-group-item ">
+              <h2>{post.title}</h2>
+              <p>{post.content}</p>
+              <div className="d-flex gap-2 ">
+                <button className="btn btn-warning px-4">Update</button>
+                <button onClick={() => deletePost(post.id)} className="btn btn-danger px-4">Delete </button>
+              </div>
+            </li>
+          ))}
+        </ul>
+      </div>
+    </>
+  );
+};
+
+export default App;
