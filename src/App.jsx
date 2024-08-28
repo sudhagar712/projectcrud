@@ -1,7 +1,8 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import axios from "axios";
 import Navbar from "./Components/Navbar/Navbar";
 import emptybox from "../src/assets/empty-box.png";
+import toast, { Toaster } from 'react-hot-toast';
 
 const App = () => {
   const [posts, setPosts] = useState([]);
@@ -12,6 +13,8 @@ const App = () => {
 
   const [editing, setEditing] = useState(false);
   const [currentPostId, setCurrentPostId] = useState(null);
+
+  const inputRef = useRef(null);
 
   // Get a Data
 
@@ -32,6 +35,7 @@ const App = () => {
       .then((res) => {
         setPosts([...posts, res.data]);
         setNewPost({ title: "", content: "" });
+        toast.success('Add Post successfully!');
       })
       .catch((err) => console.error("Something went wrong:", err));
   };
@@ -43,45 +47,41 @@ const App = () => {
       .delete(`http://localhost:4000/posts/${id}`)
       .then(() => {
         setPosts(posts.filter((post) => post.id !== id));
+        toast.success('Post deleted successfully!');
       })
       .catch((err) => console.log("Something Went wrong"));
+     
   };
 
   const handleSubmit = () => {
+    if (!newPost.title || !newPost.content) {
+      alert("Please fill in both the title and content fields.");
+      return;
+    }
 
-    if(editing){
+    if (editing) {
       updatePost();
-    }else{
+    } else {
       addpost();
     }
-   
   };
 
+  // put
 
-// put  
-
-const updatePost = () => {
-  axios
-    .put(`http://localhost:4000/posts/${currentPostId}`, newPost)
-    .then((res) => {
-      setPosts(
-        posts.map((post) => (post.id === currentPostId ? res.data : post))
-      );
-      setNewPost({ title: "", content: "" });
-      setEditing(false);
-      setCurrentPostId(null);
-    })
-    .catch((err) => console.error("Something went wrong:", err));
-};
-
-
-
-
-
-
-
-
-
+  const updatePost = () => {
+    axios
+      .put(`http://localhost:4000/posts/${currentPostId}`, newPost)
+      .then((res) => {
+        setPosts(
+          posts.map((post) => (post.id === currentPostId ? res.data : post))
+        );
+        setNewPost({ title: "", content: "" });
+        setEditing(false);
+        setCurrentPostId(null);
+        toast.success('Update Post successfully!');
+      })
+      .catch((err) => console.error("Something went wrong:", err));
+  };
 
   // fill the data
 
@@ -89,13 +89,17 @@ const updatePost = () => {
     setNewPost({ title: post.title, content: post.content });
     setEditing(true);
     setCurrentPostId(post.id);
+    inputRef.current.scrollIntoView({ behavior: "smooth" });
   };
 
   return (
     <>
       <Navbar />
       <div className="container py-4">
-        <div className="mb-5 border p-5 border-warning bg-light rounded-5 shadow-lg   ">
+        <div
+          className="mb-5 border p-5 border-warning bg-light rounded-5 shadow-lg"
+          ref={inputRef}
+        >
           <input
             type="text"
             className="form-control mb-2"
