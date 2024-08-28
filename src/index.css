@@ -11,3 +11,16 @@
 body{
   font-family: "Poppins", sans-serif;
 }
+
+
+::-webkit-scrollbar{
+  display:none;
+}
+
+
+.emptyboxcss{
+  width: 250px;
+  height: 250px;
+  
+  
+}
